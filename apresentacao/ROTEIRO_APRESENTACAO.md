@@ -101,19 +101,15 @@
 | **Erros estáticos (`flutter analyze`)** | Erro de compilação + 18+ avisos | **0 issues (`No issues found`)** | **100% limpo** |
 | **Loop de agendamento (CPU)** | Loop infinito quando hora atual > hora da tarefa | Complexidade **O(1)** (máx. 7 passos) | **0 travamentos** |
 | **Latência percebida ao clicar** | Bloqueio potencial / sem persistência real | **0 ms** (local-first + sync assíncrono em 1 query) | **UI instantânea** |
-| **Testes automatizados (`flutter test`)** | Falhando por compile error e overflow | **4/4 testes passando em ~3s** | **Cobertura validada** |
-| **Framerate (Flutter DevTools)** | *[inserir print/valor real do DevTools]* | *[meta: 60 FPS constantes / <16ms por frame]* | **Sem jank** |
-| **Consumo de RAM (Profiler)** | *[inserir print/valor real do DevTools]* | *[inserir valor medido em `--profile`]* | **Estável sem leaks** |
+| **Testes automatizados (`flutter test`)** | Falhando por compile error e overflow | **5/5 testes passando em ~4s** | **Cobertura validada** |
+| **Framerate & Render (Android 16 · Impeller Vulkan)** | Overflows e picos de CPU | **120 FPS médios · UI 0,5 ms / Raster 1,8 ms · p50/p95: 5 ms · p99: 8 ms** (627 frames) | **120 FPS (0,16% jank)** |
+| **Consumo de Memória (DevTools / VM Service)** | Sem controle de `dispose()` | **Dart Heap: 20,7 MB** · Total Size: 20,8 MB · `SurfaceCard`: 1,9 KB | **Curva plana (0 leaks)** |
+| **Otimização de Assets (Release APK)** | Fontes e ícones sem otimização | **MaterialIcons: 1,65 MB → 7,3 KB** (tree-shaking) | **-99,6% no peso dos ícones** |
 
-### Como capturar os 2 prints reais no Flutter DevTools (antes da apresentação — 2 minutos)
-1. Conecte um celular Android (ou emulador) e execute em modo **Profile** (nunca meça performance em Debug!):
-   ```powershell
-   flutter run --profile
-   ```
-2. Abra o link do **Flutter DevTools** que aparece no terminal.
-3. Tire print de 2 abas enquanto navega entre Início → Agenda → Finanças → Resumo:
-   - **Aba Performance:** mostra o gráfico de barras de frame (UI e Raster abaixo da linha de **16,6 ms = 60 FPS**).
-   - **Aba Memory:** mostra a curva de heap estável após abrir/fechar telas várias vezes (comprovando ausência de *memory leaks*).
+### Slide 9 — Prints reais do Flutter DevTools (`evidencias/`)
+- **Performance (`devtools_performance_120fps.png`):** **120 FPS (average)** em `arm64 (64 bit) android`, **Engine: Impeller**, frame destacado com **UI: 0,5 ms** e **Raster: 1,8 ms**, barras azuis estáveis entre 1 e 4 ms.
+- **Memory (`devtools_memory_heap.png`):** curva totalmente plana no gráfico de memória, **Total Size: 20,8 MB** e **Dart Heap: 20,7 MB**, comprovando ausência de *memory leaks*.
+- **Terminal (`evidencia_profiling_android16.png`):** `adb shell dumpsys gfxinfo` confirmando **627 frames**, **1 janky frame (0,16%)**, **p50/p90/p95 = 5 ms**, **p99 = 8 ms**, **GPU p50 = 2 ms / p99 = 4 ms**, além de `flutter analyze` (`0 issues`) e `flutter test` (`5/5 OK`).
 
 ---
 

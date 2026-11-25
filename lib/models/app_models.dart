@@ -410,3 +410,166 @@ class FinanceEntry {
         date: DateTime.tryParse(json['date'] as String? ?? '') ?? DateTime.now(),
       );
 }
+
+class AgendaReminderOption {
+  const AgendaReminderOption({
+    required this.minutesBefore,
+    required this.label,
+  });
+
+  final int? minutesBefore;
+  final String label;
+}
+
+const List<AgendaReminderOption> agendaReminderOptions = <AgendaReminderOption>[
+  AgendaReminderOption(minutesBefore: null, label: 'Sem aviso'),
+  AgendaReminderOption(minutesBefore: 0, label: 'Na hora'),
+  AgendaReminderOption(minutesBefore: 15, label: '15 min antes'),
+  AgendaReminderOption(minutesBefore: 30, label: '30 min antes'),
+  AgendaReminderOption(minutesBefore: 60, label: '1 hora antes'),
+  AgendaReminderOption(minutesBefore: 1440, label: '1 dia antes'),
+];
+
+const List<String> agendaEventCategories = <String>[
+  'Lembrete',
+  'Trabalho',
+  'Prova',
+  'Evento',
+];
+
+int colorIndexForAgendaCategory(String category) {
+  switch (category) {
+    case 'Prova':
+      return 3; // red
+    case 'Trabalho':
+      return 1; // orange
+    case 'Evento':
+      return 2; // purple
+    case 'Lembrete':
+    default:
+      return 0; // blue
+  }
+}
+
+String formatAgendaReminderLabel(int? minutesBefore) {
+  if (minutesBefore == null) return 'Sem notificação';
+  for (final option in agendaReminderOptions) {
+    if (option.minutesBefore == minutesBefore) return option.label;
+  }
+  if (minutesBefore == 0) return 'Na hora';
+  if (minutesBefore < 60) return '$minutesBefore min antes';
+  if (minutesBefore % 1440 == 0) {
+    final days = minutesBefore ~/ 1440;
+    return days == 1 ? '1 dia antes' : '$days dias antes';
+  }
+  final hours = minutesBefore ~/ 60;
+  return hours == 1 ? '1 hora antes' : '$hours horas antes';
+}
+
+class AgendaEvent {
+  const AgendaEvent({
+    required this.id,
+    required this.title,
+    required this.dateKey,
+    required this.time,
+    this.notes = '',
+    this.category = 'Lembrete',
+    this.colorIndex = 0,
+    this.reminderMinutesBefore = 30,
+    this.completed = false,
+  });
+
+  final String id;
+  final String title;
+  final String dateKey;
+  final String time;
+  final String notes;
+  final String category;
+  final int colorIndex;
+  final int? reminderMinutesBefore;
+  final bool completed;
+
+  DateTime get date {
+    final parts = dateKey.split('-');
+    if (parts.length == 3) {
+      final y = int.tryParse(parts[0]);
+      final m = int.tryParse(parts[1]);
+      final d = int.tryParse(parts[2]);
+      if (y != null && m != null && d != null) {
+        return DateTime(y, m, d);
+      }
+    }
+    return DateTime.now();
+  }
+
+  DateTime get scheduledDateTime {
+    final base = date;
+    final parts = time.split(':');
+    final hour = int.tryParse(parts.first) ?? 9;
+    final minute = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
+    return DateTime(base.year, base.month, base.day, hour, minute);
+  }
+
+  DateTime? get notificationDateTime {
+    final offset = reminderMinutesBefore;
+    if (offset == null) return null;
+    return scheduledDateTime.subtract(Duration(minutes: offset));
+  }
+
+  String get reminderLabel => formatAgendaReminderLabel(reminderMinutesBefore);
+
+  AgendaEvent copyWith({
+    String? title,
+    String? dateKey,
+    String? time,
+    String? notes,
+    String? category,
+    int? colorIndex,
+    int? reminderMinutesBefore,
+    bool clearReminder = false,
+    bool? completed,
+  }) {
+    return AgendaEvent(
+      id: id,
+      title: title ?? this.title,
+      dateKey: dateKey ?? this.dateKey,
+      time: time ?? this.time,
+      notes: notes ?? this.notes,
+      category: category ?? this.category,
+      colorIndex: colorIndex ?? this.colorIndex,
+      reminderMinutesBefore: clearReminder
+          ? null
+          : (reminderMinutesBefore ?? this.reminderMinutesBefore),
+      completed: completed ?? this.completed,
+    );
+  }
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'title': title,
+        'dateKey': dateKey,
+        'time': time,
+        'notes': notes,
+        'category': category,
+        'colorIndex': colorIndex,
+        'reminderMinutesBefore': reminderMinutesBefore,
+        'completed': completed,
+      };
+
+  factory AgendaEvent.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
+    final fallbackDateKey =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    return AgendaEvent(
+      id: (json['id'] as String?) ?? now.microsecondsSinceEpoch.toString(),
+      title: (json['title'] as String? ?? '').trim(),
+      dateKey: (json['dateKey'] as String?) ?? fallbackDateKey,
+      time: (json['time'] as String?) ?? '09:00',
+      notes: (json['notes'] as String?) ?? '',
+      category: (json['category'] as String?) ?? 'Lembrete',
+      colorIndex: (json['colorIndex'] as num?)?.toInt() ?? 0,
+      reminderMinutesBefore: (json['reminderMinutesBefore'] as num?)?.toInt(),
+      completed: json['completed'] == true,
+    );
+  }
+}

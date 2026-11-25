@@ -1,9 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../config/supabase_config.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
-import '../services/supabase_service.dart';
 import '../theme/app_theme.dart';
 import 'app_shell.dart';
 import 'onboarding_screens.dart';
@@ -132,8 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cloudConfigured = SupabaseConfig.isConfigured;
-
     return MobileFrame(
       child: Scaffold(
         body: SafeArea(
@@ -190,27 +186,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'ENTRAR',
-                              style: TextStyle(
-                                color: blue,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.7,
-                              ),
-                            ),
-                            PillBadge(
-                              label: cloudConfigured
-                                  ? 'Nuvem ativa'
-                                  : 'Modo local',
-                              backgroundColor:
-                                  cloudConfigured ? paleGreen : paleBlue,
-                              textColor: cloudConfigured ? green : blue,
-                            ),
-                          ],
+                        const Text(
+                          'ENTRAR',
+                          style: TextStyle(
+                            color: blue,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.7,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         const Text(
@@ -222,11 +205,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          cloudConfigured
-                              ? 'Seus dados ficam sincronizados na nuvem (Supabase) para não perder ao trocar de celular.'
-                              : 'Configure o Supabase em lib/config/supabase_config.dart para salvar na nuvem e verificar e-mail.',
-                          style: const TextStyle(color: muted, fontSize: 12),
+                        const Text(
+                          'Entre para acompanhar suas aulas, tarefas e compromissos.',
+                          style: TextStyle(color: muted, fontSize: 12),
                         ),
                         const SizedBox(height: 18),
                         AppField(
@@ -406,11 +387,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    if (outcome.requiresEmailVerification) {
-      await _showEmailVerificationDialog(_emailController.text.trim());
-      return;
-    }
-
     replaceScreen(context, const ProfileSetupScreen());
   }
 
@@ -425,47 +401,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         SnackBar(content: Text(outcome.error!)),
       );
     }
-  }
-
-  Future<void> _showEmailVerificationDialog(String email) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text(
-          'Confirme seu e-mail',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        content: Text(
-          'Enviamos um link de verificação para $email.\n\nAbra sua caixa de entrada (ou spam), clique no link para confirmar sua conta e depois faça login.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final err =
-                  await SupabaseService.instance.resendVerificationEmail(email);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    err ?? 'Link de verificação reenviado para $email.',
-                  ),
-                ),
-              );
-            },
-            child: const Text('Reenviar e-mail'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: blue),
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.pop(context);
-            },
-            child: const Text('Ir para o Login'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -503,7 +438,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           Text(
-                            'Com verificação de e-mail e backup na nuvem pelo Supabase.',
+                            'Organize suas aulas, tarefas e compromissos em um só lugar.',
                             style: TextStyle(color: muted, fontSize: 12),
                           ),
                         ],

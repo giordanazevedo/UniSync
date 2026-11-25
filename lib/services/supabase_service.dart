@@ -8,12 +8,10 @@ import '../config/supabase_config.dart';
 class AuthOutcome {
   const AuthOutcome({
     this.error,
-    this.requiresEmailVerification = false,
     this.launchedExternalFlow = false,
   });
 
   final String? error;
-  final bool requiresEmailVerification;
   final bool launchedExternalFlow;
 
   bool get isSuccess => error == null;
@@ -57,7 +55,7 @@ class SupabaseService {
         return 'E-mail ou senha incorretos.';
       }
       if (msg.contains('email not confirmed')) {
-        return 'Confirme seu e-mail clicando no link enviado para sua caixa de entrada antes de entrar.';
+        return 'Esta conta ainda aguarda confirmação. Tente entrar com Google ou tente novamente mais tarde.';
       }
       if (msg.contains('user already registered') ||
           msg.contains('already exists')) {
@@ -69,13 +67,15 @@ class SupabaseService {
       if (msg.contains('weak password') || msg.contains('at least')) {
         return 'Escolha uma senha mais forte (mínimo de 6 caracteres).';
       }
-      if (msg.contains('rate limit') || msg.contains('too many requests')) {
-        return 'Muitas tentativas seguidas. Aguarde um minuto e tente novamente.';
+      if (msg.contains('rate limit') ||
+          msg.contains('too many requests') ||
+          msg.contains('over_email_send_rate_limit')) {
+        return 'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.';
       }
       if (msg.contains('provider is not enabled')) {
-        return 'O login com Google ainda não foi ativado no painel do Supabase (Authentication -> Providers -> Google).';
+        return 'O login com Google está temporariamente indisponível.';
       }
-      return error.message;
+      return 'Não foi possível concluir o acesso. Tente novamente.';
     }
     return 'Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.';
   }
@@ -86,38 +86,42 @@ class SupabaseService {
   }) async {
     final client = _client;
     if (client == null) {
-      return const AuthOutcome(error: 'Supabase não configurado.');
+      return const AuthOutcome(
+        error: 'Serviço indisponível no momento. Verifique sua conexão.',
+      );
     }
 
+    final normalized = email.trim().toLowerCase();
     try {
       final response = await client.auth.signUp(
-        email: email.trim().toLowerCase(),
+        email: normalized,
         password: password,
-        emailRedirectTo: kIsWeb ? null : SupabaseConfig.mobileRedirectUrl,
       );
 
-      // Quando "Confirm email" está ativo no Supabase, session vem nula até o usuário confirmar no e-mail.
-      if (response.session == null) {
-        return const AuthOutcome(requiresEmailVerification: true);
+      if (response.session != null) {
+        return const AuthOutcome();
       }
-      return const AuthOutcome();
+
+      final identities = response.user?.identities;
+      if (identities != null && identities.isEmpty) {
+        return const AuthOutcome(
+          error:
+              'Este e-mail já está cadastrado. Tente entrar ou usar "Esqueci minha senha".',
+        );
+      }
+
+      // Tenta autenticar imediatamente caso o servidor já tenha confirmado a conta.
+      try {
+        await client.auth.signInWithPassword(
+          email: normalized,
+          password: password,
+        );
+        return const AuthOutcome();
+      } catch (signInError) {
+        return AuthOutcome(error: _friendlyAuthError(signInError));
+      }
     } catch (e) {
       return AuthOutcome(error: _friendlyAuthError(e));
-    }
-  }
-
-  Future<String?> resendVerificationEmail(String email) async {
-    final client = _client;
-    if (client == null) return 'Supabase não configurado.';
-    try {
-      await client.auth.resend(
-        type: OtpType.signup,
-        email: email.trim().toLowerCase(),
-        emailRedirectTo: kIsWeb ? null : SupabaseConfig.mobileRedirectUrl,
-      );
-      return null;
-    } catch (e) {
-      return _friendlyAuthError(e);
     }
   }
 
@@ -127,7 +131,9 @@ class SupabaseService {
   }) async {
     final client = _client;
     if (client == null) {
-      return const AuthOutcome(error: 'Supabase não configurado.');
+      return const AuthOutcome(
+        error: 'Serviço indisponível no momento. Verifique sua conexão.',
+      );
     }
 
     try {
@@ -145,8 +151,7 @@ class SupabaseService {
     final client = _client;
     if (client == null) {
       return const AuthOutcome(
-        error:
-            'Para entrar com o Google, cole a URL e a chave do seu projeto Supabase em lib/config/supabase_config.dart.',
+        error: 'Não foi possível conectar para entrar com o Google.',
       );
     }
 
@@ -156,7 +161,7 @@ class SupabaseService {
         redirectTo: kIsWeb ? null : SupabaseConfig.mobileRedirectUrl,
         authScreenLaunchMode: kIsWeb
             ? LaunchMode.platformDefault
-            : LaunchMode.externalApplication,
+            : LaunchMode.inAppBrowserView,
       );
       if (!launched) {
         return const AuthOutcome(
@@ -172,7 +177,7 @@ class SupabaseService {
   Future<String?> sendPasswordReset(String email) async {
     final client = _client;
     if (client == null) {
-      return 'Configure o Supabase em lib/config/supabase_config.dart para recuperar senha por e-mail.';
+      return 'Não foi possível enviar a recuperação de senha agora. Verifique sua conexão.';
     }
     try {
       await client.auth.resetPasswordForEmail(

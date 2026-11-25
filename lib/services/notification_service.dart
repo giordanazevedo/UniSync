@@ -14,11 +14,13 @@ class TaskNotificationEvent {
     required this.taskId,
     required this.taskTitle,
     this.actionId,
+    this.isAgendaEvent = false,
   });
 
   final String taskId;
   final String taskTitle;
   final String? actionId;
+  final bool isAgendaEvent;
 }
 
 class NotificationService {
@@ -30,8 +32,13 @@ class NotificationService {
   static const String channelName = 'Tarefas fixas';
   static const String channelDescription =
       'Notificações do UniSync no horário das suas tarefas fixas.';
+  static const String agendaChannelId = 'agenda_events_reminders';
+  static const String agendaChannelName = 'Compromissos da agenda';
+  static const String agendaChannelDescription =
+      'Lembretes do UniSync para provas, trabalhos e compromissos por data.';
   static const String actionDoneYes = 'done_yes';
   static const String actionDoneNo = 'done_no';
+  static const String actionCompleteEvent = 'complete_event';
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -81,6 +88,14 @@ class NotificationService {
           importance: Importance.high,
         ),
       );
+      await android?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          agendaChannelId,
+          agendaChannelName,
+          description: agendaChannelDescription,
+          importance: Importance.high,
+        ),
+      );
 
       final launchDetails = await _plugin.getNotificationAppLaunchDetails();
       if (launchDetails != null &&
@@ -98,6 +113,25 @@ class NotificationService {
     if (payload == null || payload.isEmpty) return;
     try {
       final decoded = jsonDecode(payload) as Map<String, dynamic>;
+      final type = decoded['type'] as String? ?? 'fixed_task';
+      if (type == 'agenda_event') {
+        final eventId = decoded['eventId'] as String?;
+        final eventTitle = decoded['eventTitle'] as String? ?? 'Compromisso';
+        if (eventId == null || eventId.isEmpty) return;
+        final event = TaskNotificationEvent(
+          taskId: eventId,
+          taskTitle: eventTitle,
+          actionId: response.actionId,
+          isAgendaEvent: true,
+        );
+        if (_eventController.hasListener) {
+          _eventController.add(event);
+        } else {
+          _pendingEvent = event;
+        }
+        return;
+      }
+
       final taskId = decoded['taskId'] as String?;
       final taskTitle = decoded['taskTitle'] as String? ?? 'Tarefa fixa';
       if (taskId == null || taskId.isEmpty) return;
@@ -144,6 +178,9 @@ class NotificationService {
 
   int _notificationId(String taskId, int weekday) =>
       (taskId.hashCode.abs() % 100000) * 10 + weekday;
+
+  int _agendaNotificationId(String eventId) =>
+      2000000 + (eventId.hashCode.abs() % 500000);
 
   tz.TZDateTime _nextInstanceOfWeekdayAndTime(
     int weekday,
@@ -262,6 +299,14 @@ class NotificationService {
   }
 
   Future<void> rescheduleAllFixedTasks(List<FixedTask> tasks) async {
+    final events = await AppStorage.loadAgendaEvents();
+    await rescheduleAll(tasks: tasks, events: events);
+  }
+
+  Future<void> rescheduleAll({
+    required List<FixedTask> tasks,
+    required List<AgendaEvent> events,
+  }) async {
     if (kIsWeb) return;
     await cancelAll();
     final enabled = await AppStorage.areNotificationsEnabled();
@@ -269,6 +314,121 @@ class NotificationService {
     for (final task in tasks) {
       await scheduleFixedTask(task);
     }
+    for (final event in events) {
+      await scheduleAgendaEvent(event);
+    }
+  }
+
+  NotificationDetails _agendaNotificationDetails() {
+    return const NotificationDetails(
+      android: AndroidNotificationDetails(
+        agendaChannelId,
+        agendaChannelName,
+        channelDescription: agendaChannelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            actionCompleteEvent,
+            'Concluir',
+            showsUserInterface: true,
+          ),
+        ],
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentSound: true,
+        presentBadge: true,
+      ),
+    );
+  }
+
+  Future<DateTime?> scheduleAgendaEvent(AgendaEvent event) async {
+    if (kIsWeb) return null;
+    await cancelAgendaEvent(event.id);
+
+    if (event.completed || event.reminderMinutesBefore == null) return null;
+
+    final enabled = await AppStorage.areNotificationsEnabled();
+    if (!enabled) return null;
+
+    await initialize();
+    final granted = await requestPermissions();
+    if (!granted) return null;
+
+    final eventDt = event.scheduledDateTime;
+    final now = tz.TZDateTime.now(tz.local);
+    final tzEventDt = tz.TZDateTime(
+      tz.local,
+      eventDt.year,
+      eventDt.month,
+      eventDt.day,
+      eventDt.hour,
+      eventDt.minute,
+    );
+    var notifyAt = tzEventDt.subtract(
+      Duration(minutes: event.reminderMinutesBefore!),
+    );
+
+    // Se o aviso antecipado já passou mas o compromisso ainda vai acontecer,
+    // agenda para o horário exato do compromisso para o aluno não perder.
+    if (!notifyAt.isAfter(now)) {
+      if (tzEventDt.isAfter(now)) {
+        notifyAt = tzEventDt;
+      } else {
+        return null;
+      }
+    }
+
+    final bodyParts = <String>[
+      '${event.category} · ${event.time}',
+      if (event.reminderMinutesBefore != null &&
+          event.reminderMinutesBefore! > 0)
+        event.reminderLabel,
+      if (event.notes.trim().isNotEmpty) event.notes.trim(),
+    ];
+    final payload = jsonEncode(<String, String>{
+      'type': 'agenda_event',
+      'eventId': event.id,
+      'eventTitle': event.title,
+    });
+    final id = _agendaNotificationId(event.id);
+    final details = _agendaNotificationDetails();
+
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        event.title,
+        bodyParts.join(' · '),
+        notifyAt,
+        details,
+        payload: payload,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+      return notifyAt;
+    } catch (_) {
+      try {
+        await _plugin.zonedSchedule(
+          id,
+          event.title,
+          bodyParts.join(' · '),
+          notifyAt,
+          details,
+          payload: payload,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+        return notifyAt;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  Future<void> cancelAgendaEvent(String eventId) async {
+    if (kIsWeb) return;
+    try {
+      await _plugin.cancel(_agendaNotificationId(eventId));
+    } catch (_) {}
   }
 
   Future<bool> showTestQuestionNotification(FixedTask task) async {

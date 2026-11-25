@@ -20,6 +20,8 @@ class AppStorage {
   static const String _fixedTasksKey = 'fixed_tasks';
   static const String _attendanceKey = 'attendance_records';
   static const String _financeKey = 'finance_entries';
+  static const String _agendaEventsKey = 'agenda_events';
+  static const String _cloudAgendaEventsReservedKey = '__agenda_events__';
   static const String _notificationsKey = 'notifications_enabled';
 
   static final RegExp _emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]{2,}$');
@@ -132,7 +134,7 @@ class AppStorage {
         email: normalized,
         password: password,
       );
-      if (outcome.isSuccess && !outcome.requiresEmailVerification) {
+      if (outcome.isSuccess) {
         await handleSupabaseSessionActive(normalized);
       }
       return outcome;
@@ -294,6 +296,13 @@ class AppStorage {
     if (row['subject_notes'] is Map) {
       final notesMap = Map<String, dynamic>.from(row['subject_notes'] as Map);
       for (final entry in notesMap.entries) {
+        if (entry.key == _cloudAgendaEventsReservedKey && entry.value is List) {
+          await prefs.setString(
+            _key(prefs, _agendaEventsKey),
+            jsonEncode(entry.value),
+          );
+          continue;
+        }
         await prefs.setString(
           _key(prefs, _notesBaseKey(entry.key)),
           jsonEncode(entry.value),
@@ -343,6 +352,9 @@ class AppStorage {
       final notes = await loadSubjectNotes(subject);
       subjectNotes[subject.id] = notes.map((n) => n.toJson()).toList();
     }
+    final agendaEvents = await loadAgendaEvents();
+    subjectNotes[_cloudAgendaEventsReservedKey] =
+        agendaEvents.map((e) => e.toJson()).toList();
     final fixedTasks = await loadFixedTasks();
     final attendance = await loadAttendanceMap();
     final finance = await loadFinanceEntries();
@@ -599,6 +611,50 @@ class AppStorage {
       jsonEncode(entries.map((entry) => entry.toJson()).toList()),
     );
     _syncInBackground();
+  }
+
+  // ==================== COMPROMISSOS POR DATA (AGENDA) ====================
+
+  static Future<List<AgendaEvent>> loadAgendaEvents() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = _getString(prefs, _agendaEventsKey);
+    if (raw == null || raw.trim().isEmpty) return <AgendaEvent>[];
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      final list = decoded
+          .map((item) => AgendaEvent.fromJson(item as Map<String, dynamic>))
+          .where((event) => event.title.isNotEmpty)
+          .toList();
+      list.sort((a, b) {
+        final byDate = a.dateKey.compareTo(b.dateKey);
+        if (byDate != 0) return byDate;
+        return a.time.compareTo(b.time);
+      });
+      return list;
+    } catch (_) {
+      return <AgendaEvent>[];
+    }
+  }
+
+  static Future<void> saveAgendaEvents(List<AgendaEvent> events) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _key(prefs, _agendaEventsKey),
+      jsonEncode(events.map((event) => event.toJson()).toList()),
+    );
+    _syncInBackground();
+  }
+
+  static Future<List<AgendaEvent>> toggleAgendaEventCompleted({
+    required String eventId,
+    required bool completed,
+  }) async {
+    final events = await loadAgendaEvents();
+    final updated = events
+        .map((e) => e.id == eventId ? e.copyWith(completed: completed) : e)
+        .toList();
+    await saveAgendaEvents(updated);
+    return updated;
   }
 
   // ==================== NOTIFICAÇÕES ====================

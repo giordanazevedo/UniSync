@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../config/supabase_config.dart';
 import '../models/app_models.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
@@ -262,9 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             AppStorage.isCloudConnected
                                 ? 'Backup na nuvem ativo'
-                                : SupabaseConfig.isConfigured
-                                    ? 'Supabase pronto'
-                                    : 'Backup local (configure o Supabase)',
+                                : 'Backup da conta',
                             style: const TextStyle(
                               color: ink,
                               fontWeight: FontWeight.w800,
@@ -274,8 +271,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           const SizedBox(height: 2),
                           Text(
                             AppStorage.isCloudConnected
-                                ? 'Seus dados são salvos automaticamente no Supabase.'
-                                : 'Preencha lib/config/supabase_config.dart para sincronizar entre celulares.',
+                                ? 'Seus dados são salvos automaticamente na sua conta.'
+                                : 'Entre na sua conta para sincronizar seus dados entre dispositivos.',
                             style: const TextStyle(color: muted, fontSize: 11),
                           ),
                         ],
@@ -353,7 +350,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       subtitle: const Text(
-                        'Avisar no horário agendado das tarefas fixas',
+                        'Avisar tarefas fixas e compromissos da agenda',
                         style: TextStyle(color: muted, fontSize: 12),
                       ),
                       value: notificationsEnabled,

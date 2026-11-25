@@ -213,4 +213,63 @@ void main() {
     expect(find.text('Nenhuma anotação ainda'), findsOneWidget);
     expect(find.text('+ Nova anotação'), findsOneWidget);
   });
+
+  testWidgets('adiciona compromisso em uma data na Agenda com escolha de notificação',
+      (tester) async {
+    const email = 'carla@uni.br';
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'active_user_email': email,
+      'u_${email}_onboarding_complete': true,
+      'u_${email}_profile_name': 'Carla Lima',
+      'u_${email}_profile_course': 'Sistemas de Informação',
+      'u_${email}_profile_period': '5º período',
+    });
+
+    await tester.pumpWidget(const UniSyncApp());
+    await tester.pumpAndSettle();
+
+    // Vai para a aba Agenda
+    await tester.tap(find.text('Agenda'));
+    await tester.pumpAndSettle();
+
+    // Clica no botão Adicionar do dia selecionado
+    await tester.tap(find.text('Adicionar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Novo compromisso'), findsOneWidget);
+    expect(find.text('Quando receber notificação?'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(TextFormField).first,
+      'Prova de Mobile',
+    );
+    await tester.tap(find.text('Prova'));
+    await tester.tap(find.text('1 hora antes'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Salvar compromisso'));
+    await tester.tap(find.text('Salvar compromisso'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Prova de Mobile'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Prova de Mobile'), findsOneWidget);
+    expect(find.text('1 hora antes'), findsOneWidget);
+
+    // Verifica que o compromisso de hoje também aparece no Início
+    await tester.tap(find.text('Início'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Próximos compromissos'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Próximos compromissos'), findsOneWidget);
+    expect(find.text('Prova de Mobile'), findsOneWidget);
+  });
 }

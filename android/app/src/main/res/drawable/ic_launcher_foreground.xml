@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="23"
+        android:translateY="23"
+        android:scaleX="0.516667"
+        android:scaleY="0.516667">
+        <!-- Arco superior branco -->
+        <path
+            android:pathData="M18.65,44.95 A44,44 0 0,1 101.35,44.95"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="10"
+            android:strokeLineCap="round" />
+        <!-- Ponta de seta superior branca -->
+        <path
+            android:pathData="M104.4,53.4 L109.8,41.9 L92.9,48.0 Z"
+            android:fillColor="#FFFFFF"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round" />
+        <!-- Arco inferior turquesa -->
+        <path
+            android:pathData="M101.35,75.05 A44,44 0 0,1 18.65,75.05"
+            android:strokeColor="#5EEAD4"
+            android:strokeWidth="10"
+            android:strokeLineCap="round" />
+        <!-- Ponta de seta inferior turquesa -->
+        <path
+            android:pathData="M15.6,66.6 L10.2,78.1 L27.1,72.0 Z"
+            android:fillColor="#5EEAD4"
+            android:strokeColor="#5EEAD4"
+            android:strokeWidth="3"
+            android:strokeLineJoin="round" />
+        <!-- Letra U central branca -->
+        <path
+            android:pathData="M44,44 L44,66 A16,16 0 0,0 76,66 L76,44"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="10"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>

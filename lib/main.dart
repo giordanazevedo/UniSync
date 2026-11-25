@@ -95,6 +95,49 @@ class _UniSyncAppState extends State<UniSyncApp> {
   }
 
   Future<void> _handleNotificationEvent(TaskNotificationEvent event) async {
+    if (event.isAgendaEvent) {
+      if (event.actionId == NotificationService.actionCompleteEvent) {
+        await _completeAgendaEvent(event);
+        return;
+      }
+      final navContext = _navigatorKey.currentContext;
+      if (navContext == null || !navContext.mounted) return;
+      final done = await showDialog<bool>(
+        context: navContext,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            event.taskTitle,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          content: const Text(
+            'Deseja marcar este compromisso da agenda como concluído?',
+            style: TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text(
+                'Agora não',
+                style: TextStyle(color: ink, fontWeight: FontWeight.w700),
+              ),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: blue),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text(
+                'Concluir',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      );
+      if (done == true) {
+        await _completeAgendaEvent(event);
+      }
+      return;
+    }
+
     if (event.actionId == NotificationService.actionDoneYes) {
       await _recordAnswer(event, true);
       return;
@@ -141,6 +184,18 @@ class _UniSyncAppState extends State<UniSyncApp> {
     if (answer != null) {
       await _recordAnswer(event, answer);
     }
+  }
+
+  Future<void> _completeAgendaEvent(TaskNotificationEvent event) async {
+    await AppStorage.toggleAgendaEventCompleted(
+      eventId: event.taskId,
+      completed: true,
+    );
+    await NotificationService.instance.cancelAgendaEvent(event.taskId);
+    notifyAppDataChanged();
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(content: Text('${event.taskTitle}: concluído!')),
+    );
   }
 
   Future<void> _recordAnswer(TaskNotificationEvent event, bool done) async {

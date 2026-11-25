@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../models/app_models.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'fixed_tasks_screen.dart';
@@ -27,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<SubjectItem> subjects = <SubjectItem>[];
   Map<String, int> noteCounts = <String, int>{};
   List<FixedTask> fixedTasks = <FixedTask>[];
+  List<AgendaEvent> agendaEvents = <AgendaEvent>[];
   bool? attendedToday;
 
   @override
@@ -48,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final loadedSubjects = await AppStorage.loadSubjects();
     final loadedCounts = await AppStorage.loadSubjectNoteCounts(loadedSubjects);
     final loadedTasks = await AppStorage.loadFixedTasks();
+    final loadedEvents = await AppStorage.loadAgendaEvents();
     final attendanceMap = await AppStorage.loadAttendanceMap();
     final todayKey = dateKey(DateTime.now());
 
@@ -57,8 +60,26 @@ class _HomeScreenState extends State<HomeScreen> {
       subjects = loadedSubjects;
       noteCounts = loadedCounts;
       fixedTasks = loadedTasks;
+      agendaEvents = loadedEvents;
       attendedToday = attendanceMap[todayKey];
     });
+  }
+
+  Future<void> _toggleAgendaEvent(AgendaEvent event) async {
+    final nextDone = !event.completed;
+    final updated = await AppStorage.toggleAgendaEventCompleted(
+      eventId: event.id,
+      completed: nextDone,
+    );
+    if (nextDone) {
+      await NotificationService.instance.cancelAgendaEvent(event.id);
+    } else {
+      await NotificationService.instance
+          .scheduleAgendaEvent(event.copyWith(completed: false));
+    }
+    if (!mounted) return;
+    setState(() => agendaEvents = updated);
+    widget.onDataChanged();
   }
 
   Future<void> _answerFixedTask(FixedTask task, bool done) async {
@@ -95,6 +116,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final progressPercent = (progress * 100).round();
     final nowTimeLabel =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final upcomingEvents = agendaEvents.where((event) {
+      if (event.dateKey == todayKey) return true;
+      if (event.completed) return false;
+      final diff = event.date.difference(todayStart).inDays;
+      return diff >= 0 && diff <= 7;
+    }).toList();
 
     final sortedTasks = List<FixedTask>.from(fixedTasks)
       ..sort((a, b) {
@@ -276,6 +305,86 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 22),
+
+        if (upcomingEvents.isNotEmpty) ...[
+          Text(
+            'Próximos compromissos',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 10),
+          for (final event in upcomingEvents) ...[
+            Builder(
+              builder: (_) {
+                final accent = subjectColorAt(event.colorIndex);
+                final isTodayEvent = event.dateKey == todayKey;
+                final dayLabel = isTodayEvent
+                    ? 'Hoje'
+                    : formatShortDayMonth(event.date);
+                return SurfaceCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => _toggleAgendaEvent(event),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            event.completed
+                                ? Icons.check_circle_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            color: event.completed ? green : accent,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.title,
+                              style: TextStyle(
+                                color: event.completed ? muted : ink,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                decoration: event.completed
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '$dayLabel · ${event.time} · ${event.reminderLabel}',
+                              style: const TextStyle(
+                                color: muted,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      PillBadge(
+                        label: event.category,
+                        backgroundColor: accent.withValues(alpha: 0.12),
+                        textColor: accent,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 12),
+        ],
 
         // Seção Tarefas fixas
         Row(

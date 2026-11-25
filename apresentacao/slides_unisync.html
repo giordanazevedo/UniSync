@@ -361,11 +361,157 @@
       justify-content: center;
     }
 
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .evidence-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(27, 37, 89, 0.06);
+      min-height: 0;
+    }
+
+    .evidence-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .evidence-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .evidence-img-wrap {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #262b3d;
+      background: #141625;
+      height: 270px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-in;
+    }
+
+    .evidence-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+
+    .evidence-caption {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .evidence-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--pale-blue);
+      border: 1px solid #D5E0FA;
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .zoom-btn {
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .zoom-btn:hover { background: var(--indigo); }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 12, 24, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      z-index: 9999;
+      cursor: zoom-out;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 96vw;
+      max-height: 92vh;
+      border-radius: 14px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    @page {
+      size: 1200px 675px;
+      margin: 0;
+    }
+
     @media print {
-      body { background: #fff; height: auto; overflow: visible; }
-      .controls { display: none; }
-      .deck { width: 100%; height: auto; box-shadow: none; border-radius: 0; overflow: visible; }
-      .slide { position: static; display: flex !important; page-break-after: always; height: 100vh; }
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        width: 1200px;
+        height: auto;
+        overflow: visible;
+        display: block;
+      }
+      .controls, .lightbox, .zoom-btn { display: none !important; }
+      .deck {
+        width: 1200px;
+        height: auto;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
+        background: transparent;
+      }
+      .slide {
+        position: static !important;
+        display: flex !important;
+        width: 1200px;
+        height: 675px;
+        page-break-after: always;
+        break-after: page;
+        animation: none !important;
+      }
+      .slide:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
     }
   </style>
 </head>
@@ -408,7 +554,7 @@
 
       <div class="footer">
         <span>UniSync · Apresentação Final</span>
-        <span>Slide 1 / 9</span>
+        <span>Slide 1 / 10</span>
       </div>
     </section>
 
@@ -451,7 +597,7 @@
 
       <div class="footer">
         <span>Introdução e Contexto</span>
-        <span>Slide 2 / 9</span>
+        <span>Slide 2 / 10</span>
       </div>
     </section>
 
@@ -476,7 +622,7 @@
             <h3><span class="badge-num">⚙</span> Tecnologias Escolhidas</h3>
             <ul>
               <li><strong>Flutter 3.50 + Dart 3.14:</strong> compilação <strong>AOT nativa</strong> (sem bridge JS) e renderização direta em GPU (60/120 FPS).</li>
-              <li><strong>Supabase (Auth + PostgreSQL RLS):</strong> login com verificação real de e-mail, Google OAuth e backup seguro por usuário.</li>
+              <li><strong>Supabase (Auth + PostgreSQL RLS):</strong> login por e-mail/senha, Google OAuth embutido no app e backup seguro por usuário.</li>
               <li><strong>SharedPreferences:</strong> cache local instantâneo (<em>offline-first</em>).</li>
               <li><strong>flutter_local_notifications + timezone:</strong> agendamento nativo via SO (<code>AlarmManager</code>).</li>
             </ul>
@@ -499,7 +645,7 @@ lib/
 
       <div class="footer">
         <span>Stack Tecnológica e Arquitetura</span>
-        <span>Slide 3 / 9</span>
+        <span>Slide 3 / 10</span>
       </div>
     </section>
 
@@ -562,7 +708,7 @@ lib/
 
       <div class="footer">
         <span>Demonstração Prática</span>
-        <span>Slide 4 / 9</span>
+        <span>Slide 4 / 10</span>
       </div>
     </section>
 
@@ -613,7 +759,7 @@ lib/
 
       <div class="footer">
         <span>Mergulho Técnico · 3,5 min (1 de 3)</span>
-        <span>Slide 5 / 9</span>
+        <span>Slide 5 / 10</span>
       </div>
     </section>
 
@@ -665,7 +811,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
 
       <div class="footer">
         <span>Mergulho Técnico · 3,5 min (2 de 3)</span>
-        <span>Slide 6 / 9</span>
+        <span>Slide 6 / 10</span>
       </div>
     </section>
 
@@ -703,7 +849,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
 
       <div class="footer">
         <span>Mergulho Técnico · 3,5 min (3 de 3)</span>
-        <span>Slide 7 / 9</span>
+        <span>Slide 7 / 10</span>
       </div>
     </section>
 
@@ -720,7 +866,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
       <div class="content">
         <div>
           <h2>Métricas &amp; Comparativo: Antes vs. Depois</h2>
-          <p class="subtitle">Resultados reais da refatoração + espaço reservado para seus prints do Flutter DevTools.</p>
+          <p class="subtitle">Resultados reais da refatoração e profiling no Android 16 (<code>flutter run --profile</code> · Impeller Vulkan).</p>
         </div>
 
         <table>
@@ -736,7 +882,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
             <tr>
               <td>Tamanho do projeto</td>
               <td><span class="tag-bad">~1,36 GB (JDK + duplicatas)</span></td>
-              <td>~5 MB (código + fontes locais)</td>
+              <td>~5 MB · Ícones tree-shaken (-99,6%)</td>
               <td><span class="tag-good">-99% de peso</span></td>
             </tr>
             <tr>
@@ -758,28 +904,84 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
               <td><span class="tag-good">Instantâneo</span></td>
             </tr>
             <tr>
-              <td>Testes &amp; Profiling</td>
+              <td>Testes &amp; Profiling real</td>
               <td><span class="tag-bad">Overflows de layout + testes quebrados</span></td>
-              <td>4/4 testes OK · DevTools: <em>[inserir FPS/RAM]</em></td>
-              <td><span class="tag-good">60 FPS estável</span></td>
+              <td>5/5 testes · UI: <strong>0,5–5 ms</strong> / GPU: <strong>2 ms</strong> · Heap: <strong>20,7 MB</strong></td>
+              <td><span class="tag-good">120 FPS (0,16% jank)</span></td>
             </tr>
           </tbody>
         </table>
 
         <div class="card accent" style="padding:12px 18px;">
           <p style="font-size:12.5px; color:var(--blue);">
-            <strong>Dica para o dia da apresentação:</strong> rode <code>flutter run --profile</code>, abra o <strong>Flutter DevTools</strong> e substitua <em>[inserir FPS/RAM]</em> pelos prints reais das abas <strong>Performance</strong> (&lt; 16,6 ms/frame) e <strong>Memory</strong> (heap estável).
+            <strong>Profiling real (Android 16 · Impeller Vulkan · 627 frames):</strong> <strong>120 FPS médios</strong> · Frame UI <strong>p50/p90/p95 = 5 ms · p99 = 8 ms</strong> · GPU <strong>p50 = 2 ms · p99 = 4 ms</strong> · <strong>Dart Heap estável em 20,7 MB</strong> (zero vazamentos) · <code>MaterialIcons</code> reduzido de <strong>1,65 MB → 7,3 KB (-99,6%)</strong>.
           </p>
         </div>
       </div>
 
       <div class="footer">
-        <span>Métricas e Profiling</span>
-        <span>Slide 8 / 9</span>
+        <span>Métricas e Profiling (1 de 2)</span>
+        <span>Slide 8 / 10</span>
       </div>
     </section>
 
-    <!-- SLIDE 9: LIÇÕES APRENDIDAS E ENCERRAMENTO (30s) -->
+    <!-- SLIDE 9: EVIDÊNCIAS VISUAIS DO FLUTTER DEVTOOLS -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">5. Evidências Reais · Flutter DevTools (--profile)</span>
+      </div>
+
+      <div class="content" style="gap:12px;">
+        <div>
+          <h2>Provas Reais no Flutter DevTools (Android 16)</h2>
+          <p class="subtitle">Capturas ao vivo em <code>arm64</code> rodando <code>flutter run --profile</code> com Engine Impeller (Vulkan).</p>
+        </div>
+
+        <div class="evidence-grid">
+          <div class="evidence-card">
+            <div class="evidence-head">
+              <span class="evidence-title">Performance · 120 FPS (média)</span>
+              <span class="tag-good">UI 0,5 ms · Raster 1,8 ms</span>
+            </div>
+            <div class="evidence-img-wrap" onclick="openZoom('evidencias/devtools_performance_120fps.png')">
+              <img src="evidencias/devtools_performance_120fps.png" alt="Flutter DevTools Performance 120 FPS" />
+            </div>
+            <p class="evidence-caption">
+              Barras azuis uniformes entre <strong>1 ms e 4 ms</strong> (abaixo do limite de 8,3 ms para 120 FPS) com <strong>Engine: Impeller</strong>.
+            </p>
+          </div>
+
+          <div class="evidence-card">
+            <div class="evidence-head">
+              <span class="evidence-title">Memory · Dart Heap Estável</span>
+              <span class="tag-good">20,7 MB · 0 leaks</span>
+            </div>
+            <div class="evidence-img-wrap" onclick="openZoom('evidencias/devtools_memory_heap.png')">
+              <img src="evidencias/devtools_memory_heap.png" alt="Flutter DevTools Memory Heap 20.7 MB" />
+            </div>
+            <p class="evidence-caption">
+              Curva totalmente plana após navegação contínua. <code>Total Size: 20,8 MB</code> · <code>SurfaceCard</code> (40 instâncias): apenas <strong>1,9 KB</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="evidence-bar">
+          <span><strong>Terminal (ADB + VM Service):</strong> 627 frames · Janky: <strong>1 (0,16%)</strong> · UI p50/p95 = <strong>5 ms</strong> · p99 = <strong>8 ms</strong> · GPU p50 = <strong>2 ms</strong> · 5/5 testes OK.</span>
+          <button class="zoom-btn" onclick="openZoom('evidencias/evidencia_profiling_android16.png')">Ver print do Terminal</button>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Métricas e Profiling (2 de 2)</span>
+        <span>Slide 9 / 10</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: LIÇÕES APRENDIDAS E ENCERRAMENTO (30s) -->
     <section class="slide">
       <div class="top-bar">
         <div class="brand-mini">
@@ -800,7 +1002,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
             <h3><span class="badge-num orange">!</span> Principal Desafio Técnico</h3>
             <ul>
               <li>Identificar e corrigir o <strong>loop infinito na UI Thread</strong> durante o agendamento de notificações recorrentes.</li>
-              <li>Unir autenticação real (verificação de e-mail + Google OAuth no Supabase) com experiência <strong>offline-first</strong> sem perder fluidez.</li>
+              <li>Unir autenticação real (e-mail/senha e Google OAuth embutido via Custom Tabs) com experiência <strong>offline-first</strong> sem perder fluidez.</li>
               <li>Eliminar gargalos de layout (<em>RenderFlex overflows</em>) validados com testes automatizados de widget.</li>
             </ul>
           </div>
@@ -823,17 +1025,21 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
 
       <div class="footer">
         <span>Encerramento</span>
-        <span>Slide 9 / 9</span>
+        <span>Slide 10 / 10</span>
       </div>
     </section>
   </div>
 
   <div class="controls">
     <button onclick="prev()">← Anterior</button>
-    <span id="counter">1 / 9</span>
+    <span id="counter">1 / 10</span>
     <button onclick="next()">Próximo →</button>
     <button onclick="toggleFull()">Tela cheia (F)</button>
     <button onclick="window.print()">Exportar PDF</button>
+  </div>
+
+  <div id="lightbox" class="lightbox" onclick="closeZoom()">
+    <img id="lightboxImg" src="" alt="Ampliação da evidência" />
   </div>
 
   <script>
@@ -848,6 +1054,13 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
 
     function next() { show(current + 1); }
     function prev() { show(current - 1); }
+    function openZoom(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeZoom() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
     function toggleFull() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen?.();
@@ -857,6 +1070,7 @@ tz.TZDateTime _nextInstanceOfWeekdayAndTime(
     }
 
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeZoom(); return; }
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') next();
       if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
       if (e.key.toLowerCase() === 'f') toggleFull();

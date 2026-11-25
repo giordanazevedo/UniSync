@@ -18,7 +18,7 @@ class SupabaseConfig {
     defaultValue: 'sb_publishable_3qY0jb4jCAi0EM2riBgw6A_ZBeOYlUd',
   );
 
-  /// Deep link usado no Android/iOS para retorno do login com Google e confirmação de e-mail.
+  /// Deep link usado no Android/iOS para retorno do login com Google e recuperação de senha.
   /// Adicione "unisync://login-callback/" em Authentication -> URL Configuration -> Redirect URLs no Supabase.
   static const String mobileRedirectUrl = 'unisync://login-callback/';
 
