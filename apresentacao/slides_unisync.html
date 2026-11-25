@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniSync — Apresentação Final | Código de Alta Performance Mobile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue: #2F479D;
+      --dark-blue: #223A80;
+      --indigo: #4F46E5;
+      --navy: #1E1B4B;
+      --teal: #14B8A6;
+      --mint: #5EEAD4;
+      --pale-blue: #E7EDFB;
+      --canvas: #F5F4F9;
+      --orange: #E18137;
+      --red: #C6514A;
+      --purple: #844EBE;
+      --ink: #171A20;
+      --muted: #666B7B;
+      --border: #E2E5F1;
+      --white: #FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #141625;
+      color: var(--ink);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .deck {
+      width: min(1200px, 96vw);
+      height: min(675px, 88vh);
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+      background: var(--canvas);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 44px 54px;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--canvas);
+      animation: fadeIn 220ms ease;
+    }
+
+    .slide.active { display: flex; }
+
+    .slide.cover {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--dark-blue) 55%, var(--indigo) 100%);
+      color: var(--white);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--navy);
+    }
+
+    .cover .brand-mini { color: #fff; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--pale-blue);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .cover .pill {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 56px;
+      font-weight: 800;
+      letter-spacing: -1.8px;
+      line-height: 1.05;
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.9px;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .cover .subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 20px;
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 18px 0;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 22px;
+      box-shadow: 0 6px 20px rgba(27, 37, 89, 0.05);
+    }
+
+    .card.accent {
+      background: var(--pale-blue);
+      border-color: #D2DDF9;
+    }
+
+    .card.dark {
+      background: linear-gradient(135deg, var(--dark-blue), var(--blue));
+      color: #fff;
+      border: none;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p, .card li {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .card.dark p, .card.dark li { color: rgba(255,255,255,0.85); }
+
+    ul { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+    strong { color: var(--ink); font-weight: 800; }
+    .card.dark strong, .cover strong { color: #fff; }
+
+    .badge-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      background: var(--pale-blue);
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+
+    .badge-num.orange { background: #FFF1E6; color: var(--orange); }
+    .badge-num.purple { background: #F3ECFA; color: var(--purple); }
+    .badge-num.teal { background: #E6FAF7; color: var(--teal); }
+
+    pre {
+      background: #171A2E;
+      color: #E6EBFF;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow: hidden;
+      font-family: Consolas, 'Cascadia Code', monospace;
+    }
+
+    .code-comment { color: #8B93B8; }
+    .code-kw { color: #818CF8; font-weight: 700; }
+    .code-str { color: #5EEAD4; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--pale-blue);
+      color: var(--blue);
+      text-align: left;
+      padding: 11px 14px;
+      font-weight: 800;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .tag-good {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #E6F6EE;
+      color: #16794B;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+
+    .tag-bad {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #FDECEC;
+      color: var(--red);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .flow-step {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .flow-step .step-t {
+      font-weight: 800;
+      font-size: 13.5px;
+      color: var(--blue);
+      margin-bottom: 4px;
+    }
+
+    .flow-step .step-d {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .arrow { font-size: 20px; font-weight: 800; color: var(--indigo); }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .cover .footer { color: rgba(255,255,255,0.7); }
+
+    .controls {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #D7DCFA;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .controls button {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .controls button:hover { background: var(--indigo); border-color: var(--indigo); }
+
+    .logo-box {
+      width: 82px;
+      height: 82px;
+      border-radius: 22px;
+      background: var(--indigo);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+    }
+
+    .logo-mini {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: var(--indigo);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media print {
+      body { background: #fff; height: auto; overflow: visible; }
+      .controls { display: none; }
+      .deck { width: 100%; height: auto; box-shadow: none; border-radius: 0; overflow: visible; }
+      .slide { position: static; display: flex !important; page-break-after: always; height: 100vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1: CAPA -->
+    <section class="slide cover active">
+      <div class="top-bar">
+        <span class="pill">Código de Alta Performance Mobile · Trabalho Final</span>
+        <span class="pill">Duração total: 10 min</span>
+      </div>
+
+      <div class="content" style="gap: 24px;">
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div class="logo-box">
+            <svg width="56" height="56" viewBox="0 0 120 120">
+              <path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+              <polygon points="104.4,53.4 109.8,41.9 92.9,48.0" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="10" stroke-linecap="round"/>
+              <polygon points="15.6,66.6 10.2,78.1 27.1,72.0" fill="#5EEAD4" stroke="#5EEAD4" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1>Uni<span style="color:#5EEAD4;">Sync</span></h1>
+            <p class="subtitle">Sua vida universitária em sintonia.</p>
+          </div>
+        </div>
+
+        <p style="font-size:17px; max-width:760px; line-height:1.55; color:rgba(255,255,255,0.88); font-weight:600;">
+          Aplicativo mobile em <strong>Flutter + Supabase</strong> para centralizar disciplinas, anotações, tarefas fixas com notificações diárias, agenda, frequência e finanças com arquitetura <strong>offline-first</strong> de alta performance.
+        </p>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
+          <span class="pill">Integrantes: [Inserir nomes do grupo]</span>
+          <span class="pill">Flutter 3.50 · Dart 3.14 · Supabase</span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>UniSync · Apresentação Final</span>
+        <span>Slide 1 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: INTRODUÇÃO E CONTEXTO (1 min) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">1. Introdução e Contexto · 1 min</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>O Problema Real &amp; O Desafio de Performance</h2>
+          <p class="subtitle">Por que criamos o UniSync e quais gargalos precisamos eliminar desde a arquitetura.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3><span class="badge-num">1</span> O Problema do Estudante</h3>
+            <ul>
+              <li>Horários de aula, anotações por matéria, tarefas recorrentes, faltas e gastos ficam espalhados em vários apps.</li>
+              <li>Apps puramente locais fazem o aluno <strong>perder todos os dados</strong> ao trocar de celular.</li>
+              <li>Falta um lembrete simples (<strong>Sim / Não</strong>) no celular que contabilize automaticamente quantas vezes uma rotina ocorreu no mês.</li>
+            </ul>
+          </div>
+
+          <div class="card accent">
+            <h3><span class="badge-num orange">⚡</span> Principais Desafios de Performance</h3>
+            <ul>
+              <li><strong>Falta de conexão / latência de rede:</strong> não travar a interface ao salvar anotações, tarefas ou gastos.</li>
+              <li><strong>Bateria em segundo plano:</strong> disparar notificações recorrentes sem polling nem timers na CPU.</li>
+              <li><strong>Fluidez da UI (60 FPS):</strong> calendário mensal, listas e gráficos leves sem <em>jank</em> nem <em>memory leaks</em>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Introdução e Contexto</span>
+        <span>Slide 2 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: STACK E ARQUITETURA (1,5 min) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">2. Stack e Arquitetura · 1,5 min</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Stack Tecnológica &amp; Arquitetura em Camadas</h2>
+          <p class="subtitle">Escolhas técnicas focadas em compilação nativa, desacoplamento e Main Thread livre.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3><span class="badge-num">⚙</span> Tecnologias Escolhidas</h3>
+            <ul>
+              <li><strong>Flutter 3.50 + Dart 3.14:</strong> compilação <strong>AOT nativa</strong> (sem bridge JS) e renderização direta em GPU (60/120 FPS).</li>
+              <li><strong>Supabase (Auth + PostgreSQL RLS):</strong> login com verificação real de e-mail, Google OAuth e backup seguro por usuário.</li>
+              <li><strong>SharedPreferences:</strong> cache local instantâneo (<em>offline-first</em>).</li>
+              <li><strong>flutter_local_notifications + timezone:</strong> agendamento nativo via SO (<code>AlarmManager</code>).</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3><span class="badge-num purple">▤</span> Separação de Responsabilidades</h3>
+            <pre><span class="code-comment">// Refatorado de 1 arquivo de 3.088 linhas → 14 módulos</span>
+lib/
+ ├── <span class="code-kw">config/</span>   supabase_config.dart   <span class="code-comment">// Credenciais</span>
+ ├── <span class="code-kw">models/</span>   app_models.dart        <span class="code-comment">// Modelos imutáveis</span>
+ ├── <span class="code-kw">services/</span> storage_service.dart   <span class="code-comment">// Cache + Sync</span>
+ │             supabase_service.dart  <span class="code-comment">// Auth + Nuvem</span>
+ │             notification_service.dart <span class="code-comment">// Alertas SO</span>
+ ├── <span class="code-kw">screens/</span>  auth, onboarding, home, agenda, ...
+ └── <span class="code-kw">theme/</span>    app_theme.dart         <span class="code-comment">// Design System</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Stack Tecnológica e Arquitetura</span>
+        <span>Slide 3 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: LIVE DEMO (2 min) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">3. Demonstração Prática · 2 min</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Live Demo — "O Caminho Feliz"</h2>
+          <p class="subtitle">Foco em Cold Start rápido, transições suaves (60 FPS) e resposta imediata sem jank.</p>
+        </div>
+
+        <div class="flow">
+          <div class="flow-step">
+            <div class="step-t">1. Login / Google</div>
+            <div class="step-d">Auth real Supabase + restauração da nuvem em 1 query</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="flow-step">
+            <div class="step-t">2. Onboarding</div>
+            <div class="step-d">Dropdowns (curso, período, turno), disciplinas e rotinas</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="flow-step">
+            <div class="step-t">3. Início &amp; Notas</div>
+            <div class="step-d">Sim/Não em tarefas fixas + toque na disciplina para anotar</div>
+          </div>
+          <div class="arrow">→</div>
+          <div class="flow-step">
+            <div class="step-t">4. Agenda &amp; Resumo</div>
+            <div class="step-d">Calendário, frequência S1–S4, contagem mensal e donut</div>
+          </div>
+        </div>
+
+        <div class="card dark">
+          <h3>O que observar durante a navegação ao vivo</h3>
+          <div class="grid-3" style="margin-top:8px;">
+            <div>
+              <strong>Cold Start rápido</strong>
+              <p>Fontes locais embutidas e leitura assíncrona do estado sem travar o splash.</p>
+            </div>
+            <div>
+              <strong>Resposta otimista (0 ms)</strong>
+              <p>Clicar em "Sim" / "Não" atualiza o contador na hora enquanto sincroniza em background.</p>
+            </div>
+            <div>
+              <strong>Troca de abas fluida</strong>
+              <p>Navegação sem reconstrução global e listas leves com rolagem contínua.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Demonstração Prática</span>
+        <span>Slide 4 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: MERGULHO TÉCNICO 1 — OFFLINE-FIRST E REDE -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">4. Mergulho Técnico (1/3) · Rede &amp; Offline-First</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Otimização 1: Cache Offline-First &amp; Sync Assíncrono</h2>
+          <p class="subtitle">Como zeramos a latência percebida na Main Thread e reduzimos chamadas de rede.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3><span class="badge-num teal">☁</span> Estratégia Aplicada</h3>
+            <ul>
+              <li><strong>Write-Local First:</strong> toda alteração grava imediatamente no cache local (<code>SharedPreferences</code> isolado por e-mail).</li>
+              <li><strong>Background Sync não-bloqueante:</strong> <code>unawaited(pushToCloud())</code> envia para o Supabase sem congelar a UI.</li>
+              <li><strong>Payload consolidado (JSONB):</strong> 1 única tabela <code>user_app_data</code> protegida por RLS — ao trocar de celular, <strong>1 única query</strong> restaura toda a conta (em vez de 6+ requisições encadeadas).</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Trecho Real — <code>storage_service.dart</code></h3>
+            <pre><span class="code-kw">static Future</span>&lt;<span class="code-kw">void</span>&gt; saveFixedTasks(List&lt;FixedTask&gt; tasks) <span class="code-kw">async</span> {
+  <span class="code-kw">final</span> prefs = <span class="code-kw">await</span> SharedPreferences.getInstance();
+  <span class="code-kw">await</span> prefs.setString(
+    _key(prefs, _fixedTasksKey),
+    jsonEncode(tasks.map((t) =&gt; t.toJson()).toList()),
+  );
+  _syncInBackground(); <span class="code-comment">// Não bloqueia a UI Thread</span>
+}
+
+<span class="code-kw">static void</span> _syncInBackground() {
+  <span class="code-kw">if</span> (!isCloudConnected) <span class="code-kw">return</span>;
+  unawaited(pushToCloud()); <span class="code-comment">// Upsert único no Supabase</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Mergulho Técnico · 3,5 min (1 de 3)</span>
+        <span>Slide 5 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: MERGULHO TÉCNICO 2 — MEMÓRIA, CPU E BATERIA -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">4. Mergulho Técnico (2/3) · Memória, CPU e Bateria</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Otimização 2: Memória, CPU &amp; Notificações sem Dreno</h2>
+          <p class="subtitle">Prevenção de memory leaks, correção de loop infinito na CPU e delegação ao SO.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3><span class="badge-num orange">⚡</span> Controle de Recursos</h3>
+            <ul>
+              <li><strong>Zero Memory Leaks:</strong> descarte explícito (<code>dispose()</code>) de todos os <code>TextEditingController</code> e <code>StreamSubscription</code> (notificações e sessão Auth) + checagem <code>if (!mounted) return</code> pós-<code>await</code>.</li>
+              <li><strong>Zero Polling em Background:</strong> notificações delegadas ao <code>AlarmManager</code> do Android (<code>zonedSchedule</code> + <code>BootReceiver</code>) — app fechado consome 0% de CPU.</li>
+              <li><strong>Bug Crítico Corrigido:</strong> loop infinito no cálculo da próxima notificação (quando hora atual &gt; hora agendada) reescrito para <strong>O(1)</strong> (máx. 7 iterações).</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Correção de CPU — <code>notification_service.dart</code></h3>
+            <pre><span class="code-comment">// ANTES: avançava dias mantendo a hora atual → LOOP INFINITO!</span>
+<span class="code-comment">// DEPOIS: O(1) — no máximo 7 passos garantidos</span>
+tz.TZDateTime _nextInstanceOfWeekdayAndTime(
+  <span class="code-kw">int</span> weekday, <span class="code-kw">int</span> hour, <span class="code-kw">int</span> minute,
+) {
+  <span class="code-kw">final</span> now = tz.TZDateTime.now(tz.local);
+  <span class="code-kw">var</span> scheduled = tz.TZDateTime(
+    tz.local, now.year, now.month, now.day, hour, minute,
+  );
+  <span class="code-kw">while</span> (scheduled.weekday != weekday || !scheduled.isAfter(now)) {
+    scheduled = scheduled.add(<span class="code-kw">const</span> Duration(days: 1));
+  }
+  <span class="code-kw">return</span> scheduled;
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Mergulho Técnico · 3,5 min (2 de 3)</span>
+        <span>Slide 6 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: MERGULHO TÉCNICO 3 — OTIMIZAÇÃO DE UI -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">4. Mergulho Técnico (3/3) · Interface &amp; Renderização</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Otimização 3: Renderização Leve &amp; Rebuilds Controlados</h2>
+          <p class="subtitle">Mantendo o frame budget abaixo de 16,6 ms (60 FPS) em toda a interface.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3><span class="badge-num">🎨</span> CustomPainter Nativo</h3>
+            <p>O gráfico <strong>Donut</strong> de gastos e o <strong>Logo UniSync</strong> são desenhados diretamente via <code>Canvas</code> vetorial — sem dependências pesadas de charts nem bitmaps grandes, com <code>shouldRepaint</code> inteligente.</p>
+          </div>
+          <div class="card">
+            <h3><span class="badge-num purple">♻</span> Lazy Lists &amp; <code>const</code></h3>
+            <p>Uso de <code>ListView.separated</code> e <code>GridView.builder</code> para construir itens sob demanda, além de construtores <code>const</code> para o Flutter pular subárvores imutáveis no rebuild.</p>
+          </div>
+          <div class="card">
+            <h3><span class="badge-num teal">⚡</span> Estado Granular &amp; Assets</h3>
+            <p>Sincronização entre abas via <code>ValueNotifier</code> (<code>appRefreshNotifier</code>) sem recriar o <code>MaterialApp</code>, e fontes <code>Plus Jakarta Sans</code> locais (zero download em runtime).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Mergulho Técnico · 3,5 min (3 de 3)</span>
+        <span>Slide 7 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: MÉTRICAS E PROFILING (1,5 min) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">5. Métricas e Profiling · 1,5 min</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Métricas &amp; Comparativo: Antes vs. Depois</h2>
+          <p class="subtitle">Resultados reais da refatoração + espaço reservado para seus prints do Flutter DevTools.</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Indicador</th>
+              <th>Antes (Protótipo inicial)</th>
+              <th>Depois (UniSync otimizado)</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tamanho do projeto</td>
+              <td><span class="tag-bad">~1,36 GB (JDK + duplicatas)</span></td>
+              <td>~5 MB (código + fontes locais)</td>
+              <td><span class="tag-good">-99% de peso</span></td>
+            </tr>
+            <tr>
+              <td>Organização &amp; Lint</td>
+              <td><span class="tag-bad">1 arquivo (3.088 linhas) · 18+ erros</span></td>
+              <td>14 módulos · <code>flutter analyze</code> limpo</td>
+              <td><span class="tag-good">0 issues</span></td>
+            </tr>
+            <tr>
+              <td>Agendamento de alertas</td>
+              <td><span class="tag-bad">Loop infinito na CPU (bug crítico)</span></td>
+              <td>Cálculo O(1) + AlarmManager nativo</td>
+              <td><span class="tag-good">0 travamentos</span></td>
+            </tr>
+            <tr>
+              <td>Latência de escrita / Sync</td>
+              <td><span class="tag-bad">Sem backup em nuvem / múltiplas tabelas</span></td>
+              <td>Local-first (0 ms) + 1 query JSONB</td>
+              <td><span class="tag-good">Instantâneo</span></td>
+            </tr>
+            <tr>
+              <td>Testes &amp; Profiling</td>
+              <td><span class="tag-bad">Overflows de layout + testes quebrados</span></td>
+              <td>4/4 testes OK · DevTools: <em>[inserir FPS/RAM]</em></td>
+              <td><span class="tag-good">60 FPS estável</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="card accent" style="padding:12px 18px;">
+          <p style="font-size:12.5px; color:var(--blue);">
+            <strong>Dica para o dia da apresentação:</strong> rode <code>flutter run --profile</code>, abra o <strong>Flutter DevTools</strong> e substitua <em>[inserir FPS/RAM]</em> pelos prints reais das abas <strong>Performance</strong> (&lt; 16,6 ms/frame) e <strong>Memory</strong> (heap estável).
+          </p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Métricas e Profiling</span>
+        <span>Slide 8 / 9</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: LIÇÕES APRENDIDAS E ENCERRAMENTO (30s) -->
+    <section class="slide">
+      <div class="top-bar">
+        <div class="brand-mini">
+          <span class="logo-mini"><svg width="20" height="20" viewBox="0 0 120 120"><path d="M18.65 44.95 A44 44 0 0 1 101.35 44.95" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M101.35 75.05 A44 44 0 0 1 18.65 75.05" fill="none" stroke="#5EEAD4" stroke-width="12" stroke-linecap="round"/><path d="M44 44 V66 a16 16 0 0 0 32 0 V44" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg></span>
+          UniSync
+        </div>
+        <span class="pill">6. Lições Aprendidas e Encerramento · 30 seg</span>
+      </div>
+
+      <div class="content">
+        <div>
+          <h2>Lições Aprendidas &amp; Próximos Passos</h2>
+          <p class="subtitle">O que mais desafiou a equipe e como escalar ainda mais a performance.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3><span class="badge-num orange">!</span> Principal Desafio Técnico</h3>
+            <ul>
+              <li>Identificar e corrigir o <strong>loop infinito na UI Thread</strong> durante o agendamento de notificações recorrentes.</li>
+              <li>Unir autenticação real (verificação de e-mail + Google OAuth no Supabase) com experiência <strong>offline-first</strong> sem perder fluidez.</li>
+              <li>Eliminar gargalos de layout (<em>RenderFlex overflows</em>) validados com testes automatizados de widget.</li>
+            </ul>
+          </div>
+
+          <div class="card accent">
+            <h3><span class="badge-num">→</span> Próximos Passos</h3>
+            <ul>
+              <li>Evoluir o cache local para <strong>SQLite / Drift</strong> com queries indexadas para milhares de anotações.</li>
+              <li>Mover serialização JSON pesada para <strong>Isolates</strong> (<code>compute()</code>) conforme o histórico crescer.</li>
+              <li>Implementar sincronização incremental (<em>delta sync</em>) e widgets na tela inicial do Android.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card dark" style="text-align:center; padding:18px;">
+          <h3 style="justify-content:center; font-size:20px; margin-bottom:4px;">Obrigado! Perguntas?</h3>
+          <p>UniSync — Sua vida universitária em sintonia.</p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <span>Encerramento</span>
+        <span>Slide 9 / 9</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="controls">
+    <button onclick="prev()">← Anterior</button>
+    <span id="counter">1 / 9</span>
+    <button onclick="next()">Próximo →</button>
+    <button onclick="toggleFull()">Tela cheia (F)</button>
+    <button onclick="window.print()">Exportar PDF</button>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let current = 0;
+
+    function show(idx) {
+      current = Math.max(0, Math.min(slides.length - 1, idx));
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      document.getElementById('counter').textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    function next() { show(current + 1); }
+    function prev() { show(current - 1); }
+    function toggleFull() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') next();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
+      if (e.key.toLowerCase() === 'f') toggleFull();
+    });
+  </script>
+</body>
+</html>
