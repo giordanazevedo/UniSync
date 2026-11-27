@@ -41,7 +41,7 @@ flutter run
 
 ## Publicar na Firebase Hosting
 
-O site é publicado em [https://unisync-479ad.web.app](https://unisync-479ad.web.app).
+O site é publicado em [https://unisyncbr.web.app](https://unisyncbr.web.app).
 
 ```powershell
 flutter build web --release
@@ -49,5 +49,5 @@ firebase deploy --only hosting --project unisync-479ad
 ```
 
 Para cadastro, login Google e recuperação de senha funcionarem em produção, adicione
-`https://unisync-479ad.web.app/` às Redirect URLs em Authentication > URL Configuration
+`https://unisyncbr.web.app/` às Redirect URLs em Authentication > URL Configuration
 no Supabase.
