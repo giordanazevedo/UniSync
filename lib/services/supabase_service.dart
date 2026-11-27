@@ -28,6 +28,8 @@ class SupabaseService {
 
   SupabaseClient? get _client => isReady ? Supabase.instance.client : null;
 
+  String get _webRedirectUrl => '${Uri.base.origin}${Uri.base.path}';
+
   User? get currentUser => _client?.auth.currentUser;
 
   String? get currentUserEmail => currentUser?.email?.trim().toLowerCase();
@@ -96,6 +98,8 @@ class SupabaseService {
       final response = await client.auth.signUp(
         email: normalized,
         password: password,
+        emailRedirectTo:
+            kIsWeb ? _webRedirectUrl : SupabaseConfig.mobileRedirectUrl,
       );
 
       if (response.session != null) {
@@ -158,10 +162,9 @@ class SupabaseService {
     try {
       final launched = await client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? null : SupabaseConfig.mobileRedirectUrl,
-        authScreenLaunchMode: kIsWeb
-            ? LaunchMode.platformDefault
-            : LaunchMode.inAppBrowserView,
+        redirectTo: kIsWeb ? _webRedirectUrl : SupabaseConfig.mobileRedirectUrl,
+        authScreenLaunchMode:
+            kIsWeb ? LaunchMode.platformDefault : LaunchMode.inAppBrowserView,
       );
       if (!launched) {
         return const AuthOutcome(
@@ -182,7 +185,7 @@ class SupabaseService {
     try {
       await client.auth.resetPasswordForEmail(
         email.trim().toLowerCase(),
-        redirectTo: kIsWeb ? null : SupabaseConfig.mobileRedirectUrl,
+        redirectTo: kIsWeb ? _webRedirectUrl : SupabaseConfig.mobileRedirectUrl,
       );
       return null;
     } catch (e) {

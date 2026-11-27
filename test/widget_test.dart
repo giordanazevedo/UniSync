@@ -156,6 +156,57 @@ void main() {
     expect(find.text('1 vez no mês'), findsOneWidget);
   });
 
+  testWidgets('não pergunta presença em dias sem aulas cadastradas',
+      (tester) async {
+    const email = 'sem-aula@uni.br';
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'active_user_email': email,
+      'u_${email}_onboarding_complete': true,
+      'u_${email}_profile_name': 'Ana Souza',
+      'u_${email}_profile_course': 'Engenharia Civil',
+      'u_${email}_profile_period': '4º período',
+      'u_${email}_subjects': '[]',
+    });
+
+    await tester.pumpWidget(const UniSyncApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Assistiu às aulas hoje?'), findsNothing);
+    expect(find.text('CONFIRMAÇÃO DIÁRIA'), findsNothing);
+  });
+
+  testWidgets('pergunta presença nos dias com aulas cadastradas',
+      (tester) async {
+    final todayWeekday = DateTime.now().weekday;
+    const email = 'com-aula@uni.br';
+    final subjectsJson = jsonEncode([
+      SubjectItem(
+        id: 'sub_today',
+        name: 'Aula de hoje',
+        weekdays: <int>[todayWeekday],
+        startTime: '08:00',
+        endTime: '10:00',
+        colorIndex: 0,
+      ).toJson(),
+    ]);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'active_user_email': email,
+      'u_${email}_onboarding_complete': true,
+      'u_${email}_profile_name': 'Ana Souza',
+      'u_${email}_profile_course': 'Engenharia Civil',
+      'u_${email}_profile_period': '4º período',
+      'u_${email}_subjects': subjectsJson,
+    });
+
+    await tester.pumpWidget(const UniSyncApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Assistiu às aulas hoje?'), findsOneWidget);
+    expect(find.text('Sim, assisti'), findsOneWidget);
+    expect(find.text('Não hoje'), findsOneWidget);
+  });
+
   testWidgets('abre anotações ao clicar na disciplina e exibe opções nas Configurações',
       (tester) async {
     const email = 'joao@uni.br';

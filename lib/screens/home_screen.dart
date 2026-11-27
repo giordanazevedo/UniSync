@@ -241,70 +241,71 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 24),
 
-        // Seção Para hoje -> Confirmação diária
-        Text('Para hoje', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        SurfaceCard(
-          color: paleBlue,
-          borderSideColor: paleBlueBorder,
-          borderRadius: 20,
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'CONFIRMAÇÃO DIÁRIA',
-                    style: TextStyle(
-                      color: blue,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: .6,
+        if (subjects.any((subject) => subject.occursOnWeekday(todayWeekday))) ...[
+          Text('Para hoje', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
+          SurfaceCard(
+            color: paleBlue,
+            borderSideColor: paleBlueBorder,
+            borderRadius: 20,
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'CONFIRMAÇÃO DIÁRIA',
+                      style: TextStyle(
+                        color: blue,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: .6,
+                      ),
                     ),
-                  ),
-                  Text(
-                    nowTimeLabel,
-                    style: const TextStyle(color: muted, fontSize: 12),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Assistiu às aulas hoje?',
-                style: TextStyle(
-                  color: ink,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 19,
+                    Text(
+                      nowTimeLabel,
+                      style: const TextStyle(color: muted, fontSize: 12),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _AnswerButton(
-                      label: 'Sim, assisti',
-                      filled: attendedToday != false,
-                      selected: attendedToday == true,
-                      onPressed: () => _setAttendance(true),
-                    ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Assistiu às aulas hoje?',
+                  style: TextStyle(
+                    color: ink,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 19,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _AnswerButton(
-                      label: 'Não hoje',
-                      filled: false,
-                      selected: attendedToday == false,
-                      onPressed: () => _setAttendance(false),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _AnswerButton(
+                        label: 'Sim, assisti',
+                        filled: attendedToday != false,
+                        selected: attendedToday == true,
+                        onPressed: () => _setAttendance(true),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _AnswerButton(
+                        label: 'Não hoje',
+                        filled: false,
+                        selected: attendedToday == false,
+                        onPressed: () => _setAttendance(false),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 22),
+          const SizedBox(height: 22),
+        ],
 
         if (upcomingEvents.isNotEmpty) ...[
           Text(
