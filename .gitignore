@@ -27,6 +27,8 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+.firebase/
+firebase-debug.log
 
 # Symbolication related
 app.*.symbols

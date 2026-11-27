@@ -10,7 +10,7 @@
    - **Passo 3:** Agendamento de tarefas fixas com horário e dias da semana.
 2. **Tarefas fixas com notificação no celular:**
    - Envia notificação local no horário configurado perguntando se você fez a tarefa (`Sim, fiz` / `Não fiz`).
-   - Pergunta diária também disponível direto na tela **Início**.
+   - A confirmação de presença aparece na tela **Início** apenas nos dias com aulas cadastradas.
    - Mostra no **Resumo** quantas vezes no mês cada tarefa fixa foi feita.
 3. **Anotações por disciplina:**
    - Ao clicar em qualquer disciplina (no Início, Agenda, Resumo ou lista de disciplinas), abre a tela de anotações para criar, editar e excluir notas daquela matéria.
@@ -38,3 +38,16 @@ flutter run
 ```
 
 > Se no futuro precisar compilar para iOS em um Mac, recrie a pasta `ios/` com `flutter create --platforms=ios .`.
+
+## Publicar na Firebase Hosting
+
+O site é publicado em [https://unisync-479ad.web.app](https://unisync-479ad.web.app).
+
+```powershell
+flutter build web --release
+firebase deploy --only hosting --project unisync-479ad
+```
+
+Para cadastro, login Google e recuperação de senha funcionarem em produção, adicione
+`https://unisync-479ad.web.app/` às Redirect URLs em Authentication > URL Configuration
+no Supabase.
