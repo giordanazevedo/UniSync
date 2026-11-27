@@ -101,6 +101,25 @@ class _AgendaScreenState extends State<AgendaScreen> {
     );
   }
 
+  Future<void> _markFixedTaskCompleted(FixedTask task) async {
+    final responseDate = selectedDate;
+    final updated = await AppStorage.recordFixedTaskResponse(
+      taskId: task.id,
+      date: responseDate,
+      done: true,
+    );
+    if (!mounted) return;
+    setState(() => fixedTasks = updated);
+    widget.onDataChanged();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${task.title}: marcada como feita em ${formatShortDayMonth(responseDate)}.',
+        ),
+      ),
+    );
+  }
+
   Future<void> _openEventSheet({
     required DateTime initialDate,
     AgendaEvent? existing,
@@ -190,6 +209,8 @@ class _AgendaScreenState extends State<AgendaScreen> {
     ];
 
     final eventDateKeys = agendaEvents.map((e) => e.dateKey).toSet();
+    final today = DateTime(now.year, now.month, now.day);
+    final isPastDate = selectedDate.isBefore(today);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
@@ -510,7 +531,9 @@ class _AgendaScreenState extends State<AgendaScreen> {
                     ? 'Feita'
                     : status == FixedTaskStatus.missed
                         ? 'Não feita'
-                        : 'Rotina';
+                        : isPastDate
+                            ? 'Sem registro'
+                            : 'Rotina';
                 final bg = status == FixedTaskStatus.completed
                     ? paleBlue
                     : status == FixedTaskStatus.missed
@@ -528,43 +551,78 @@ class _AgendaScreenState extends State<AgendaScreen> {
                     horizontal: 14,
                     vertical: 14,
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Container(
-                        width: 4,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: subjectColorAt(task.colorIndex),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: subjectColorAt(task.colorIndex),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  task.title,
+                                  style: const TextStyle(
+                                    color: ink,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Tarefa fixa · ${task.time}',
+                                  style: const TextStyle(
+                                    color: muted,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PillBadge(
+                            label: label,
+                            backgroundColor: bg,
+                            textColor: fg,
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              task.title,
-                              style: const TextStyle(
-                                color: ink,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
+                      if (isPastDate && status != FixedTaskStatus.completed)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: () => _markFixedTaskCompleted(task),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Tarefa fixa · ${task.time}',
-                              style:
-                                  const TextStyle(color: muted, fontSize: 12),
+                            icon: const Icon(Icons.check_rounded, size: 16),
+                            label: const Text(
+                              'Marcar feita',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                      PillBadge(
-                        label: label,
-                        backgroundColor: bg,
-                        textColor: fg,
-                      ),
                     ],
                   ),
                 );

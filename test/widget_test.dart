@@ -265,6 +265,60 @@ void main() {
     expect(find.text('+ Nova anotação'), findsOneWidget);
   });
 
+  testWidgets(
+      'registra tarefa fixa como feita em uma data anterior pela Agenda',
+      (tester) async {
+    final now = DateTime.now();
+    final previousDate = DateTime(now.year, now.month - 1, 15);
+    const email = 'retroativo@uni.br';
+    final tasksJson = jsonEncode([
+      FixedTask(
+        id: 'carona',
+        title: 'Carona com Mikael',
+        time: '16:00',
+        weekdays: <int>[previousDate.weekday],
+        completedDates: const <String>[],
+      ).toJson(),
+    ]);
+
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'active_user_email': email,
+      'u_${email}_onboarding_complete': true,
+      'u_${email}_profile_name': 'Ana Souza',
+      'u_${email}_profile_course': 'Engenharia Civil',
+      'u_${email}_profile_period': '4º período',
+      'u_${email}_fixed_tasks': tasksJson,
+    });
+
+    await tester.pumpWidget(const UniSyncApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agenda'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Mês anterior'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15').last);
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Carona com Mikael'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Sem registro'), findsOneWidget);
+
+    await tester.tap(find.text('Marcar feita'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Feita'), findsOneWidget);
+    final savedTasks = await AppStorage.loadFixedTasks();
+    expect(
+      savedTasks.single.completedDates,
+      contains(dateKey(previousDate)),
+    );
+  });
+
   testWidgets('adiciona compromisso em uma data na Agenda com escolha de notificação',
       (tester) async {
     const email = 'carla@uni.br';
