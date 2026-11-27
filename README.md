@@ -12,6 +12,7 @@
    - Envia notificação local no horário configurado perguntando se você fez a tarefa (`Sim, fiz` / `Não fiz`).
    - A confirmação de presença aparece na tela **Início** apenas nos dias com aulas cadastradas.
    - Permite registrar tarefas fixas como feitas em datas anteriores pela **Agenda**.
+   - Ao abrir a versão atualizada na web, mostra um aviso único sobre essa novidade.
    - Mostra no **Resumo** quantas vezes no mês cada tarefa fixa foi feita.
 3. **Anotações por disciplina:**
    - Ao clicar em qualquer disciplina (no Início, Agenda, Resumo ou lista de disciplinas), abre a tela de anotações para criar, editar e excluir notas daquela matéria.

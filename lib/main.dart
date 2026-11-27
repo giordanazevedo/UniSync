@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'screens/app_shell.dart';
@@ -239,6 +241,8 @@ class FirstRunGate extends StatefulWidget {
 }
 
 class _FirstRunGateState extends State<FirstRunGate> {
+  static const String _releaseNoticeKey = 'release_notice_1_1_0';
+
   _StartupRoute _route = _StartupRoute.loading;
 
   @override
@@ -252,6 +256,7 @@ class _FirstRunGateState extends State<FirstRunGate> {
     if (activeEmail == null) {
       if (!mounted) return;
       setState(() => _route = _StartupRoute.login);
+      _scheduleReleaseNotice();
       return;
     }
 
@@ -269,6 +274,44 @@ class _FirstRunGateState extends State<FirstRunGate> {
     setState(
       () => _route = completed ? _StartupRoute.home : _StartupRoute.onboarding,
     );
+    _scheduleReleaseNotice();
+  }
+
+  void _scheduleReleaseNotice() {
+    if (!kIsWeb) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_showReleaseNotice());
+    });
+  }
+
+  Future<void> _showReleaseNotice() async {
+    final preferences = await SharedPreferences.getInstance();
+    if (preferences.getBool(_releaseNoticeKey) == true || !mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text(
+          'Novidade no UniSync!',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'Agora você pode registrar tarefas fixas como feitas em datas anteriores. '
+          'Na Agenda, selecione o dia e toque em “Marcar feita” na tarefa.',
+        ),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: blue),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Entendi'),
+          ),
+        ],
+      ),
+    );
+
+    if (mounted) {
+      await preferences.setBool(_releaseNoticeKey, true);
+    }
   }
 
   @override

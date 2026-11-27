@@ -1,11 +1,35 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unisync/main.dart';
 
 void main() {
+  testWidgets(
+    'mostra o aviso da atualização uma única vez no app web',
+    (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+
+      await tester.pumpWidget(const UniSyncApp());
+      await tester.pumpAndSettle();
+      expect(find.text('Novidade no UniSync!'), findsOneWidget);
+
+      await tester.tap(find.text('Entendi'));
+      await tester.pumpAndSettle();
+      final preferences = await SharedPreferences.getInstance();
+      expect(preferences.getBool('release_notice_1_1_0'), isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const UniSyncApp());
+      await tester.pumpAndSettle();
+      expect(find.text('Novidade no UniSync!'), findsNothing);
+    },
+    skip: !kIsWeb,
+  );
+
   testWidgets('abre na tela de login com e-mail, senha e botão Google',
       (tester) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
